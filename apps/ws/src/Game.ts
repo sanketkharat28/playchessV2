@@ -45,6 +45,7 @@ export class Game {
                     whitePlayer: users.find(user => user.id === this.player1.id)?.name,
                     blackPlayer: users.find(user => user.id === this.player1.id)?.name,
                     fen: this.board.fen(),
+                    moves : []
                 }
             }));
         if (this.player2)
@@ -56,6 +57,7 @@ export class Game {
                     whitePlayer: users.find(user => user.id === this.player1.id)?.name,
                     blackPlayer: users.find(user => user.id === this.player1.id)?.name,
                     fen: this.board.fen(),
+                    moves : []
                 }
             }));
     }
@@ -85,6 +87,8 @@ export class Game {
         })
         this.gameId = game.id;
     }
+
+
     async addMoveToDb(move: {
         from: string;
         to: string;
@@ -134,6 +138,20 @@ export class Game {
 
         await this.addMoveToDb(move);
 
+        if (this.moveCount % 2 === 0) {
+            if (this.player2)
+                this.player2.socket.send(JSON.stringify({
+                    type: MOVE,
+                    payload: move
+                }))
+        } else {
+            if (this.player1)
+                this.player1.socket.send(JSON.stringify({
+                    type: MOVE,
+                    payload: move
+                }))
+        }
+
         if (this.board.isGameOver()) {
             // Send the game over message to both players
             if (this.player1) {
@@ -153,22 +171,32 @@ export class Game {
                     }
                 }))
             }
+
+            if(this.board.isDraw()) {
+                 await db.game.update({
+                    data : {
+                        result: "DRAW",
+                        status : "COMPLETED"
+                    },
+                    where : {
+                        id : this.gameId,
+                    }
+                })
+                return;
+            }
+
+            await db.game.update({
+                data : {
+                    result: this.board.turn() === "w" ? "BLACK_WINS" : "WHITE_WINS",
+                    status : "COMPLETED"
+                },
+                where : {
+                    id : this.gameId,
+                }
+            })
             return;
         }
 
-        if (this.moveCount % 2 === 0) {
-            if (this.player2)
-                this.player2.socket.send(JSON.stringify({
-                    type: MOVE,
-                    payload: move
-                }))
-        } else {
-            if (this.player1)
-                this.player1.socket.send(JSON.stringify({
-                    type: MOVE,
-                    payload: move
-                }))
-        }
         this.moveCount++;
     }
 }
