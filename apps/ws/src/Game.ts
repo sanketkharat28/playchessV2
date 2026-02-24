@@ -153,48 +153,32 @@ export class Game {
         }
 
         if (this.board.isGameOver()) {
+            const result = this.board.isDraw() ? "DRAW" : this.board.turn() === "b" ? "BLACK_WINS" : "WHITE_WINS";
             // Send the game over message to both players
-            if (this.player1) {
-                this.player1.socket.send(JSON.stringify({
+            //needs to propagate better each user can join via various sockets
+            this.player1.socket.send(JSON.stringify({
                     type: GAME_OVER,
                     payload: {
-                        winner: this.board.turn() === "w" ? "black" : "white"
+                        result
                     }
                 }))
-            }
 
-            if (this.player2) {
-                this.player2.socket.send(JSON.stringify({
+            this.player2.socket.send(JSON.stringify({
                     type: GAME_OVER,
                     payload: {
-                        winner: this.board.turn() === "w" ? "black" : "white"
+                        result
                     }
                 }))
-            }
-
-            if(this.board.isDraw()) {
+            
                  await db.game.update({
                     data : {
-                        result: "DRAW",
+                        result,
                         status : "COMPLETED"
                     },
                     where : {
                         id : this.gameId,
                     }
                 })
-                return;
-            }
-
-            await db.game.update({
-                data : {
-                    result: this.board.turn() === "w" ? "BLACK_WINS" : "WHITE_WINS",
-                    status : "COMPLETED"
-                },
-                where : {
-                    id : this.gameId,
-                }
-            })
-            return;
         }
 
         this.moveCount++;

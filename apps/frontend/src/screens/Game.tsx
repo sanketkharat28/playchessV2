@@ -25,9 +25,9 @@ export const Game = () => {
     // Todo move to store/context
     const [chess, _setChess] = useState(new Chess());
     const [board, setBoard] = useState(chess.board());
-    const [started, setStarted] = useState(false)
-    const [gameMetadata, setGameMetadata] = useState<Metadata | null>(null)
-
+    const [started, setStarted] = useState(false);
+    const [gameMetadata, setGameMetadata] = useState<Metadata | null>(null);
+    const [result, setResult] = useState<"DRAW" | "WHITE_WINS" | "BLACK_WINS">(false);
     useEffect(() => {
         if (!socket) {
             return;
@@ -51,7 +51,7 @@ export const Game = () => {
                     setBoard(chess.board());
                     break;
                 case GAME_OVER:
-                    console.log("Game over");
+                    setResult(message.payload.result);
                     break;
             }
         }
@@ -63,6 +63,9 @@ export const Game = () => {
         <div className="justify-center flex pt-4 text-white">
             {gameMetadata?.blackPlayer} vs {gameMetadata?.whitePlayer}
         </div>
+        {result && <div className="justify-center flex pt-4 text-white">
+            {result}
+        </div>}
         <div className="justify-center flex">
             <div className="pt-8 max-w-screen-lg w-full">
                 <div className="grid grid-cols-6 gap-4 w-full">
