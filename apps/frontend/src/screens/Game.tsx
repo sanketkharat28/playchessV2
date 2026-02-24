@@ -27,7 +27,7 @@ export const Game = () => {
     const [board, setBoard] = useState(chess.board());
     const [started, setStarted] = useState(false);
     const [gameMetadata, setGameMetadata] = useState<Metadata | null>(null);
-    const [result, setResult] = useState<"DRAW" | "WHITE_WINS" | "BLACK_WINS">(false);
+    const [result, setResult] = useState<"DRAW" | "WHITE_WINS" | "BLACK_WINS" | null>(null);
     useEffect(() => {
         if (!socket) {
             return;

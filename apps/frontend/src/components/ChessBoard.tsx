@@ -28,26 +28,26 @@ export const ChessBoard = ({ chess, board, socket, setBoard }: {
                         if (!from) {
                             setFrom(squareRepresentation);
                         } else {
-                            socket.send(JSON.stringify({
-                                type: MOVE,
-                                payload: {
-                                    move: {
-                                        from,
-                                        to: squareRepresentation
+                            try {
+                                chess.move({
+                                    from,
+                                    to: squareRepresentation
+                                });
+                                socket.send(JSON.stringify({
+                                    type: MOVE,
+                                    payload: {
+                                        move: {
+                                            from,
+                                            to: squareRepresentation
+                                        }
                                     }
-                                }
-                            }))
-                            
-                            setFrom(null)
-                            chess.move({
-                                from,
-                                to: squareRepresentation
-                            });
-                            setBoard(chess.board());
-                            console.log({
-                                from,
-                                to: squareRepresentation
-                            })
+                                }))
+                                setBoard(chess.board());
+                            } catch (e) {
+                                console.log("Invalid move:", e);
+                            } finally {
+                                setFrom(null);
+                            }
                         }
                     }} key={j} className={`w-16 h-16 ${(i+j)%2 === 0 ? 'bg-green-500' : 'bg-slate-500'}`}>
                         <div className="w-full justify-center flex h-full">
